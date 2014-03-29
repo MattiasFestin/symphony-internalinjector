@@ -1,0 +1,60 @@
+'use strict';
+
+var fnannotate = require('symphony-fnannotate'),
+	fninvoke = require('symphony-fninvoke');
+
+module.exports = function internalInjector(config, providerCache, path) {
+	return function (cache, factory) {
+
+		var getService = function getService (serviceName) {
+			if (cache.hasOwnProperty(serviceName)) {
+				if (cache[serviceName] === config.INSTANTIATING) {
+					throw new Error('Circular dependency found: ' + path.join(' <- '));
+				}
+				return cache[serviceName];
+			} else {
+				try  {
+					path.unshift(serviceName);
+					cache[serviceName] = config.INSTANTIATING;
+					cache[serviceName] = factory(serviceName);
+					return cache[serviceName];
+				} catch (e) {
+					//[TODO] handle inherited properties better, this solution sux
+					//  serviceName = serviceName.replace(/Provider$/, '');
+					//  cache[serviceName] = globalInstanceCache.$injector.$(serviceName);
+					//  return cache[serviceName];
+				} finally {
+					path.shift();
+				}
+			}
+		};
+
+		var invoker = fninvoke(getService);
+
+		var instantiate = function instantiate (Type, locals) {
+			var Constructor = function () {},
+				instance,
+				returnedValue;
+
+			// Check if Type is annotated and use just the given function at n-1 as parameter
+			// e.g. someModule.factory('greeter', ['$window', function(renamed$window) {}]);
+			Constructor.prototype = (Array.isArray(Type) ? Type[Type.length - 1] : Type).prototype;
+			instance = new Constructor();
+			returnedValue = invoker(Type, instance, locals);
+			return (typeof returnedValue === 'object') ? returnedValue : instance;
+		};
+
+		return {
+			invoke: invoker,
+			instantiate: instantiate,
+			get: getService,
+			annotate: fnannotate,
+			has: function (name) {
+				return (
+					((name + config.providerSuffix) in providerCache) ||
+					(name in cache)
+				);
+			}
+		};
+	};
+};
