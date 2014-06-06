@@ -5,7 +5,6 @@ var fnannotate = require('symphony-fnannotate'),
 
 module.exports = function internalInjector(config, providerCache, path) {
 	return function (cache, factory) {
-
 		var getService = function getService (serviceName) {
 			if (cache.hasOwnProperty(serviceName)) {
 				if (cache[serviceName] === config.INSTANTIATING) {
@@ -13,19 +12,10 @@ module.exports = function internalInjector(config, providerCache, path) {
 				}
 				return cache[serviceName];
 			} else {
-				try  {
-					path.unshift(serviceName);
-					cache[serviceName] = config.INSTANTIATING;
-					cache[serviceName] = factory(serviceName);
-					return cache[serviceName];
-				} catch (e) {
-					//[TODO] handle inherited properties better, this solution sux
-					//  serviceName = serviceName.replace(/Provider$/, '');
-					//  cache[serviceName] = globalInstanceCache.$injector.$(serviceName);
-					//  return cache[serviceName];
-				} finally {
-					path.shift();
-				}
+				path.unshift(serviceName);
+				cache[serviceName] = config.INSTANTIATING;
+				cache[serviceName] = factory(serviceName);
+				return cache[serviceName];
 			}
 		};
 
@@ -40,8 +30,7 @@ module.exports = function internalInjector(config, providerCache, path) {
 			// e.g. someModule.factory('greeter', ['$window', function(renamed$window) {}]);
 			Constructor.prototype = (Array.isArray(Type) ? Type[Type.length - 1] : Type).prototype;
 			instance = new Constructor();
-			returnedValue = invoker(Type, instance, locals);
-			return (typeof returnedValue === 'object') ? returnedValue : instance;
+			return invoker(Type, instance, locals);
 		};
 
 		return {
@@ -51,8 +40,8 @@ module.exports = function internalInjector(config, providerCache, path) {
 			annotate: fnannotate,
 			has: function (name) {
 				return (
-					((name + config.providerSuffix) in providerCache) ||
-					(name in cache)
+					providerCache.hasOwnProperty(name + config.providerSuffix) ||
+					cache.hasOwnProperty(name)
 				);
 			}
 		};

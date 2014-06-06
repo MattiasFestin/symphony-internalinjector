@@ -91,11 +91,24 @@ describe('#internalinjector', function () {
 					cache = {a: Math.random()};
 
 				var o = ii(cache, function (serviceName) {
+					console.log(serviceName);
 					throw new Error('Should not be in here');
 				});
 
 				o.instantiate(function (a) {
 					a.should.be.equal(cache.a);
+				});
+			});
+
+			it('should go into factory function if dependency is not found', function (done) {
+				var path = [],
+					providerCache = {},
+					ii = internalInjector(config, providerCache, path),
+					cache = {a: Math.random()};
+
+				var o = ii(cache, function (serviceName) {
+					serviceName.should.be.eql('b');
+					done();
 				});
 
 				o.instantiate(function (b) {

@@ -199,16 +199,16 @@
     <h1>Code coverage report for <span class="entity">src/main.js</span></h1>
     <h2>
         
-        Statements: <span class="metric">100% <small>(23 / 23)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Statements: <span class="metric">100% <small>(20 / 20)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         
-        Branches: <span class="metric">100% <small>(10 / 10)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Branches: <span class="metric">100% <small>(8 / 8)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         
         Functions: <span class="metric">100% <small>(6 / 6)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         
-        Lines: <span class="metric">100% <small>(23 / 23)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Lines: <span class="metric">100% <small>(20 / 20)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
         
         Ignored: <span class="metric"><span class="ignore-none">none</span></span> &nbsp;&nbsp;&nbsp;&nbsp;
     </h2>
@@ -264,26 +264,14 @@
 46
 47
 48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60</td><td class="line-coverage"><span class="cline-any cline-neutral">&nbsp;</span>
+49</td><td class="line-coverage"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">9</span>
 <span class="cline-any cline-yes">8</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7</span>
 <span class="cline-any cline-yes">7</span>
 <span class="cline-any cline-yes">5</span>
 <span class="cline-any cline-yes">1</span>
@@ -294,21 +282,12 @@
 <span class="cline-any cline-yes">2</span>
 <span class="cline-any cline-yes">2</span>
 <span class="cline-any cline-yes">2</span>
-<span class="cline-any cline-yes">1</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7</span>
+<span class="cline-any cline-yes">8</span>
 <span class="cline-any cline-yes">3</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -318,10 +297,9 @@
 <span class="cline-any cline-yes">3</span>
 <span class="cline-any cline-yes">3</span>
 <span class="cline-any cline-yes">3</span>
-<span class="cline-any cline-yes">3</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7</span>
+<span class="cline-any cline-yes">8</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -341,7 +319,6 @@ var fnannotate = require('symphony-fnannotate'),
 &nbsp;
 module.exports = function internalInjector(config, providerCache, path) {
 	return function (cache, factory) {
-&nbsp;
 		var getService = function getService (serviceName) {
 			if (cache.hasOwnProperty(serviceName)) {
 				if (cache[serviceName] === config.INSTANTIATING) {
@@ -349,19 +326,10 @@ module.exports = function internalInjector(config, providerCache, path) {
 				}
 				return cache[serviceName];
 			} else {
-				try  {
-					path.unshift(serviceName);
-					cache[serviceName] = config.INSTANTIATING;
-					cache[serviceName] = factory(serviceName);
-					return cache[serviceName];
-				} catch (e) {
-					//[TODO] handle inherited properties better, this solution sux
-					//  serviceName = serviceName.replace(/Provider$/, '');
-					//  cache[serviceName] = globalInstanceCache.$injector.$(serviceName);
-					//  return cache[serviceName];
-				} finally {
-					path.shift();
-				}
+				path.unshift(serviceName);
+				cache[serviceName] = config.INSTANTIATING;
+				cache[serviceName] = factory(serviceName);
+				return cache[serviceName];
 			}
 		};
 &nbsp;
@@ -376,8 +344,7 @@ module.exports = function internalInjector(config, providerCache, path) {
 			// e.g. someModule.factory('greeter', ['$window', function(renamed$window) {}]);
 			Constructor.prototype = (Array.isArray(Type) ? Type[Type.length - 1] : Type).prototype;
 			instance = new Constructor();
-			returnedValue = invoker(Type, instance, locals);
-			return (typeof returnedValue === 'object') ? returnedValue : instance;
+			return invoker(Type, instance, locals);
 		};
 &nbsp;
 		return {
@@ -387,8 +354,8 @@ module.exports = function internalInjector(config, providerCache, path) {
 			annotate: fnannotate,
 			has: function (name) {
 				return (
-					((name + config.providerSuffix) in providerCache) ||
-					(name in cache)
+					providerCache.hasOwnProperty(name + config.providerSuffix) ||
+					cache.hasOwnProperty(name)
 				);
 			}
 		};
@@ -398,7 +365,7 @@ module.exports = function internalInjector(config, providerCache, path) {
 
 </div>
 <div class="footer">
-    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sat Mar 29 2014 19:47:14 GMT+0100 (W. Europe Standard Time)</div>
+    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Fri Jun 06 2014 16:40:45 GMT+0200 (W. Europe Summer Time)</div>
 </div>
 
 <script src="../prettify.js"></script>
