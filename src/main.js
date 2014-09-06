@@ -5,17 +5,19 @@ var fnannotate = require('symphony-fnannotate'),
 
 module.exports = function internalInjector(config, providerCache, path) {
 	return function (cache, factory) {
-		var getService = function getService (serviceName) {
-			if (cache.hasOwnProperty(serviceName)) {
+		var getService = function getService (serviceName, locals) {
+			if (cache.hasOwnProperty(serviceName) && serviceName !== '$locals') {
 				if (cache[serviceName] === config.INSTANTIATING) {
 					throw new Error('Circular dependency found: ' + path.join(' <- '));
 				}
 				return cache[serviceName];
-			} else {
+			} else if (serviceName !== '$locals') {
 				path.unshift(serviceName);
 				cache[serviceName] = config.INSTANTIATING;
-				cache[serviceName] = factory(serviceName);
+				cache[serviceName] = factory(serviceName, locals);
 				return cache[serviceName];
+			} else {
+				return locals;
 			}
 		};
 

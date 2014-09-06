@@ -1,6 +1,6 @@
 {
   "name": "symphony-internalinjector",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Angular.js function internal injector",
   "main": "./src/main.js",
   "directories": {
@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "symphony-fnannotate": "~0.2.0",
-    "symphony-fninvoke": "~0.3.0"
+    "symphony-fninvoke": "~0.4.0"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
