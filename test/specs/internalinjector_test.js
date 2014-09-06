@@ -49,6 +49,19 @@ describe('#internalinjector', function () {
 				}).should.throw('Circular dependency found: ' + path.join(' <- '));
 			});
 
+			it('should get local vars in cache', function () {
+				var path = [],
+					providerCache = {},
+					ii = internalInjector(config, providerCache, path),
+					cache = {};
+
+				var o = ii(cache, function (serviceName) {
+					throw new Error('Should not be in here');
+				});
+
+				o.get('$locals', {a: 123}).should.eql({a: 123});
+			});
+
 			it('should retriveValue from cache', function () {
 				var path = [],
 					providerCache = {},
